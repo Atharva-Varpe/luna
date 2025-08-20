@@ -11,7 +11,7 @@
   # GNOME Shell Extensions
   environment.gnome.excludePackages = [ ]; # Optional: don't exclude any by default
   environment.systemPackages = with pkgs.gnomeExtensions; [
-    forge
+    forge # for hyprland like tiling
     space-bar
     blur-my-shell
     just-perfection

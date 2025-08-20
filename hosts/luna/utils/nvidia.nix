@@ -1,177 +1,145 @@
 { config, lib, pkgs, ... }:
 
 {
-  # Enable OpenGL
+  # Allow unfree software (required for Nvidia drivers)
+  nixpkgs.config.allowUnfree = true;
+
+  # Enable OpenGL/graphics
   hardware.graphics = {
     enable = true;
-    enable32Bit = true;
-    extraPackages = with pkgs; [
-      # VDPAU and VAAPI support
-      vaapiVdpau
-      libvdpau-va-gl
-      # Vulkan support
-      nvidia-vaapi-driver
-    ];
+    enable32Bit = true; # Enable 32-bit support for games
   };
 
-  # Load NVIDIA driver for Xorg and Wayland
+  # Default configuration: Nvidia GPU enabled with PRIME Sync
   services.xserver.videoDrivers = [ "nvidia" ];
-
-  # NVIDIA configuration
+  
   hardware.nvidia = {
     # Modesetting is required
     modesetting.enable = true;
-
-    # Enable power management (do not disable this unless you have a reason to)
-    # Likely to cause problems on laptops and with screen tearing
-    powerManagement.enable = true;
     
-    # Fine-grained power management. Turns off GPU when not in use
-    # Experimental and only works on modern Nvidia GPUs (Turing+)
-    # RTX 3060 Mobile supports this - enabling for better battery life
-    powerManagement.finegrained = true;
-
-    # Use the open source version of the kernel module (for driver version 515.43.04+)
-    # Currently alpha-quality/buggy, so false is currently the recommended setting
-    open = false;
-
-    # Enable the Nvidia settings menu
-    # Accessible via `nvidia-settings`
+    # Nvidia power management. Can cause sleep/suspend issues but may fix graphical corruption
+    powerManagement.enable = false;
+    
+    # Fine-grained power management for modern GPUs (Turing or newer)
+    # Your RTX 3060 supports this, but it's experimental
+    powerManagement.finegrained = false;
+    
+    # Use open-source kernel module for RTX 3060 (recommended for Turing+)
+    # RTX 3060 is Ampere architecture, so this should be set to true
+    open = true;
+    
+    # Enable Nvidia settings menu
     nvidiaSettings = true;
-
-    # Use the latest production driver
-    # RTX 3060 Mobile works best with latest drivers
-    package = config.boot.kernelPackages.nvidiaPackages.latest;
-
-    # PRIME configuration for laptops with hybrid graphics
+    
+    # Use stable driver with RTX Super support
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+    
+    # PRIME configuration for hybrid graphics
     prime = {
-      # Enable NVIDIA Optimus PRIME
-      offload = {
-        enable = true;
-        enableOffloadCmd = true;
+      # Enable sync mode by default (better performance, higher power consumption)
+      sync.enable = true;
+      
+      # Bus IDs - YOU MUST UPDATE THESE FOR YOUR SYSTEM
+      # Run: sudo lshw -c display
+      # Convert hex to decimal, remove leading zeros, replace dot with colon
+      # Example conversion: pci@0000:00:02.0 becomes PCI:0:2:0
+      #                    pci@0000:01:00.0 becomes PCI:1:0:0
+      intelBusId = "PCI:0:2:0";    # Update this with your Intel GPU bus ID
+      nvidiaBusId = "PCI:1:0:0";   # Update this with your Nvidia GPU bus ID
+    };
+    
+    # Force full composition pipeline to reduce screen tearing
+    forceFullCompositionPipeline = true;
+  };
+
+  # Specialisation for Intel-only mode (power saving, longer battery life)
+  specialisation = {
+    intel-only.configuration = {
+      system.nixos.tags = [ "intel-only" ];
+      
+      # Disable Nvidia completely and use only Intel
+      services.xserver.videoDrivers = lib.mkForce [ "modesetting" ];
+      
+      # Override Nvidia settings
+      hardware.nvidia = {
+        prime.sync.enable = lib.mkForce false;
+        prime.offload.enable = lib.mkForce false;
       };
       
-      # Enable sync mode instead of offload mode (better performance but higher power usage)
-      # Uncomment the following lines and comment out the offload section above if you prefer sync mode:
-      # sync.enable = true;
+      # Blacklist Nvidia modules to ensure they don't load
+      boot.blacklistedKernelModules = [ "nouveau" "nvidia" "nvidia_drm" "nvidia_modeset" ];
+      
+      # Blacklist Nvidia kernel modules via modprobe
+      boot.extraModprobeConfig = ''
+        blacklist nouveau
+        blacklist nvidia
+        blacklist nvidia_drm  
+        blacklist nvidia_modeset
+        options nouveau modeset=0
+      '';
+      
+      # Use power-saving settings for Intel GPU
+      services.xserver.deviceSection = ''
+        Option "TearFree" "true"
+        Option "AccelMethod" "glamor"
+      '';
+      
+      # Disable Nvidia GPU completely with udev rules
+      services.udev.extraRules = ''
+        # Remove NVIDIA USB xHCI Host Controller devices, if present
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c0330", ATTR{power/control}="auto", ATTR{remove}="1"
+        
+        # Remove NVIDIA USB Type-C UCSI devices, if present  
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c8000", ATTR{power/control}="auto", ATTR{remove}="1"
+        
+        # Remove NVIDIA Audio devices, if present
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x040300", ATTR{power/control}="auto", ATTR{remove}="1"
+        
+        # Remove NVIDIA VGA/3D controller devices
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x03[0-9]*", ATTR{power/control}="auto", ATTR{remove}="1"
+      '';
+    };
 
-      # Bus ID of the NVIDIA GPU. You can find it using lspci
-      # Your RTX 3060 Mobile is at 01:00.0
-      nvidiaBusId = "PCI:1:0:0";
+    # Optional: Offload mode specialisation (for when you want Nvidia available but not always active)
+    nvidia-offload.configuration = {
+      system.nixos.tags = [ "nvidia-offload" ];
       
-      # Bus ID of the Intel GPU. You can find it using lspci
-      # Your Intel Iris Xe Graphics is at 00:02.0
-      intelBusId = "PCI:0:2:0";
+      services.xserver.videoDrivers = lib.mkForce [ "modesetting" "nvidia" ];
       
-      # For AMD iGPU, use amdgpuBusId instead of intelBusId
-      # amdgpuBusId = "PCI:0:2:0";
+      hardware.nvidia.prime = {
+        # Disable sync and enable offload mode
+        sync.enable = lib.mkForce false;
+        offload = {
+          enable = lib.mkForce true;
+          enableOffloadCmd = lib.mkForce true;
+        };
+      };
     };
   };
 
-  # Environment variables for NVIDIA
-  environment.sessionVariables = {
-    # For Wayland support
-    LIBVA_DRIVER_NAME = "nvidia";
-    XDG_SESSION_TYPE = "wayland";
-    GBM_BACKEND = "nvidia-drm";
-    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
-    
-    # For better Wayland support
-    WLR_NO_HARDWARE_CURSORS = "1";
-    
-    # NVIDIA specific
-    NVIDIA_DISABLE_PREEMPTION = "1";
-  };
-
-  # System packages for NVIDIA utilities
+  # Environment packages for GPU utilities
   environment.systemPackages = with pkgs; [
-    # NVIDIA utilities
-    nvidia-system-monitor-qt  # GUI system monitor for NVIDIA GPUs
-    nvitop                   # Interactive NVIDIA GPU process viewer (htop for GPUs)
-    nvtopPackages.nvidia     # GPU process monitoring tool (NVIDIA-specific)
-    gpu-viewer               # Simple GPU information viewer
-    
-    # CUDA toolkit for RTX 3060 Mobile (supports CUDA 8.6)
-    cudatoolkit
-    cudaPackages.cudnn
-    
-    # Vulkan tools (RTX 3060 has excellent Vulkan support)
-    vulkan-tools             # Vulkan utilities (vulkaninfo, vkcube)
-    vulkan-loader            # Vulkan loader
-    vulkan-validation-layers # Vulkan validation layers
-    vulkan-extension-layer   # Additional Vulkan extensions
-    
-    # OpenGL utilities
-    glxinfo                  # OpenGL information utility
-    mesa-demos               # OpenGL demos and utilities
-    
-    # Video acceleration (RTX 3060 supports NVENC/NVDEC)
-    libva-utils              # VA-API utilities (vainfo)
-    vdpauinfo               # VDPAU information utility
-    
-    # Additional GPU monitoring tools
-    radeontop                # Works for general GPU monitoring
+    # Nvidia utilities (only installed when nvidia drivers are active)
+    #nvidia-smi
+    nvtopnvtopPackages.full
+    # General GPU utilities
+    glxinfo
+    vulkan-tools
+    mesa-demos
   ];
 
-  # Enable CUDA support for RTX 3060 Mobile
-  nixpkgs.config.cudaSupport = true;
+  # Create nvidia-offload script for manual offloading when in offload mode
+  environment.shellAliases = {
+    nvidia-offload = "env __NV_PRIME_RENDER_OFFLOAD=1 __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only";
+  };
+
+  # Kernel parameters to help with boot issues
+  boot.initrd.kernelModules = [ "nvidia" ];
+  boot.extraModulePackages = [ config.boot.kernelPackages.nvidia_x11 ];
   
-  # Enable unfree packages for NVIDIA drivers and CUDA
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [
-    "nvidia-x11"
-    "nvidia-settings"
-    "nvidia-persistenced"
-    "cudatoolkit"
-    "cudnn"
-  ];
-
-  # Boot configuration for NVIDIA
-  boot.kernelParams = [
-    # NVIDIA DRM kernel mode setting
-    "nvidia-drm.modeset=1"
-    # Disable nouveau (open source NVIDIA driver)
-    "nouveau.modeset=0"
-    # Improve NVIDIA performance
-    "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
-    # Enable NVIDIA power management for RTX 3060 Mobile
-    "nvidia.NVreg_DynamicPowerManagement=0x02"
-    # Better memory management for modern GPUs
-    "nvidia.NVreg_TemporaryFilePath=/var/tmp"
-  ];
-
-  # Services configuration
-  services.xserver = {
-    # Screen tearing prevention
-    screenSection = ''
-      Option "metamodes" "nvidia-auto-select +0+0 {ForceFullCompositionPipeline=On}"
-      Option "AllowIndirectGLXProtocol" "off"
-      Option "TripleBuffer" "on"
-    '';
+  # Optional: Enable Docker with CDI support for GPU access
+  virtualisation.docker = {
+    enable = true;
+    daemon.settings.features.cdi = true;
   };
-
-  # Systemd services for NVIDIA
-  systemd.services.nvidia-control-devices = {
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig.ExecStart = "${pkgs.linuxPackages.nvidia_x11.bin}/bin/nvidia-smi";
-  };
-
-  # Udev rules for NVIDIA
-  services.udev.extraRules = ''
-    # Remove NVIDIA USB xHCI Host Controller devices, if present
-    ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c0330", ATTR{power/wakeup}="disabled", ATTR{remove}="1"
-
-    # Remove NVIDIA USB Type-C UCSI devices, if present
-    ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x0c8000", ATTR{power/wakeup}="disabled", ATTR{remove}="1"
-
-    # Remove NVIDIA Audio devices, if present
-    ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x040300", ATTR{power/wakeup}="disabled", ATTR{remove}="1"
-
-    # Enable runtime PM for NVIDIA VGA/3D controller devices on driver bind
-    ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="auto"
-    ACTION=="bind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="auto"
-
-    # Disable runtime PM for NVIDIA VGA/3D controller devices on driver unbind
-    ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030000", TEST=="power/control", ATTR{power/control}="on"
-    ACTION=="unbind", SUBSYSTEM=="pci", ATTR{vendor}=="0x10de", ATTR{class}=="0x030200", TEST=="power/control", ATTR{power/control}="on"
-  '';
 }
