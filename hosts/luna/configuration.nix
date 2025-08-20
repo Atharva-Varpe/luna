@@ -11,6 +11,7 @@
       ./utils/audio.nix
       ./utils/gnome.nix
       ./utils/nvidia.nix
+      ./utils/garbage_collector.nix
     ];
 
   # Bootloader.
