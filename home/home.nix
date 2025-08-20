@@ -1,7 +1,7 @@
 { inputs, config, pkgs, ... }:
 {
   imports = [
-    ./packages/nixvim.nix
+    ./packages/lunarvim.nix
     ./packages/wget.nix
     ./packages/vscode.nix
     ./packages/zen-browser.nix
@@ -21,8 +21,6 @@
   home.username = "luna";
   home.homeDirectory = "/home/luna";
 
-  # Allow unfree packages for Home Manager
-  nixpkgs.config.allowUnfree = true;
   home.stateVersion = "25.05";
   # You can add more Home Manager options below
 }

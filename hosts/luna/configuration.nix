@@ -10,6 +10,7 @@
       ./hardware-configuration.nix
       ./utils/audio.nix
       ./utils/gnome.nix
+      ./utils/nvidia.nix
     ];
 
   # Bootloader.
