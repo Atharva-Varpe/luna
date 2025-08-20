@@ -15,6 +15,9 @@
   # Install fonts
   home.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
+    
+    # for minecraft
+    prismlauncher 
   ];
 
   # Required for Home Manager
