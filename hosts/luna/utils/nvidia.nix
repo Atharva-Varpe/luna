@@ -121,7 +121,7 @@
   environment.systemPackages = with pkgs; [
     # Nvidia utilities (only installed when nvidia drivers are active)
     #nvidia-smi
-    nvtopnvtopPackages.full
+    nvtopPackages.full
     # General GPU utilities
     glxinfo
     vulkan-tools
