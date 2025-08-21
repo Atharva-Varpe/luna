@@ -16,6 +16,8 @@
       nixosConfigurations = {
         luna = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
+          # Pass inputs (so modules like shell.nix can access inputs.catppuccin-foot)
+          specialArgs = { inherit inputs; };
           modules = [
             ./hosts/luna/configuration.nix
             home-manager.nixosModules.home-manager

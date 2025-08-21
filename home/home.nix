@@ -26,6 +26,10 @@
 
     # Discord w/ theme
     discord
+
+    # clipboard
+    wl-clipboard
+    wl-clipboard-x11
   ];
 
   # Required for Home Manager
@@ -34,4 +38,7 @@
 
   home.stateVersion = "25.05";
   # You can add more Home Manager options below
+
+  programs.fish.enable = true;
+  programs.starship = { enable = true; enableFishIntegration = true; };
 }

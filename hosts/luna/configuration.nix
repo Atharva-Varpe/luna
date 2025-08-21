@@ -13,7 +13,8 @@
       ./utils/nvidia.nix
       ./utils/garbage_collector.nix
       ./utils/tailscale.nix
-    ];
+      ./utils/shell.nix
+      ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -88,7 +89,6 @@
     home-manager
     nano
     jq # Required for Tailscale auto-connect script
-    # home-manager not needed here because flake integrates it as a module.
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

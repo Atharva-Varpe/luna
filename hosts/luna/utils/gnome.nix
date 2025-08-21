@@ -15,5 +15,6 @@
     space-bar
     blur-my-shell
     just-perfection
+    clipboard-indicator
   ];
 }
