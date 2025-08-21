@@ -1,10 +1,10 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
 
 {
+  # Main system configuration for host 'luna'.
+  # This file is used via flakes (see flake.nix) so you normally do NOT need
+  # to run 'nixos-generate-config' again; just edit and rebuild with:
+  #   nixos-rebuild switch --flake .#luna
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
@@ -12,6 +12,7 @@
       ./utils/gnome.nix
       ./utils/nvidia.nix
       ./utils/garbage_collector.nix
+      ./utils/tailscale.nix
     ];
 
   # Bootloader.
@@ -21,7 +22,7 @@
   # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "luna"; # Hostname matches flake output name.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -61,13 +62,14 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # User account (set password with: passwd luna)
   users.users.luna = {
     isNormalUser = true;
     description = "luna";
-    extraGroups = [ "networkmanager" "wheel" ];
+    # Add docker group so the user can access the Docker daemon.
+    extraGroups = [ "networkmanager" "wheel" "docker" ];
     packages = with pkgs; [
-    #  thunderbird
+      # Per-user packages (system-wide ones go in environment.systemPackages)
     ];
   };
 
@@ -83,8 +85,10 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    nano # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     home-manager
+    nano
+    jq # Required for Tailscale auto-connect script
+    # home-manager not needed here because flake integrates it as a module.
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

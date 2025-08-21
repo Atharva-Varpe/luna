@@ -7,6 +7,7 @@
     ./packages/zen-browser.nix
     ./packages/btop.nix
     ./packages/utils/git.nix
+    ./packages/utils/python.nix
   ];
 
   # Home Manager manages itself
@@ -17,7 +18,14 @@
     nerd-fonts.jetbrains-mono
     
     # for minecraft
-    prismlauncher 
+    prismlauncher
+
+    # docker
+    docker_28
+    docker-compose
+
+    # Discord w/ theme
+    discord
   ];
 
   # Required for Home Manager
