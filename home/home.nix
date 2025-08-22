@@ -17,8 +17,9 @@
     # fonts
     nerd-fonts.jetbrains-mono
 
-    # lammps
+    # lammps & ovito for MM722
     lammps
+    ovito
 
     # ranger
     ranger
