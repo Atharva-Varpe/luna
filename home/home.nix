@@ -13,12 +13,15 @@
   # Home Manager manages itself
   programs.home-manager.enable = true;
 
-  # Install fonts
   home.packages = with pkgs; [
+    # fonts
     nerd-fonts.jetbrains-mono
-    
-    # for minecraft
-    prismlauncher
+
+    # lammps
+    lammps
+
+    # ranger
+    ranger
 
     # docker
     docker_28
