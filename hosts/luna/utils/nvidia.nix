@@ -52,11 +52,6 @@
     mesa-demos
   ];
 
-  # Create nvidia-offload script for manual offloading
-  environment.shellAliases = {
-    nvidia-offload = "env __NV_PRIME_RENDER_OFFLOAD=1 __NV_PRIME_RENDER_OFFLOAD_PROVIDER=NVIDIA-G0 __GLX_VENDOR_LIBRARY_NAME=nvidia __VK_LAYER_NV_optimus=NVIDIA_only";
-  };
-
   # Kernel parameters to help with boot issues
   boot.initrd.kernelModules = [ "nvidia" ];
   boot.extraModulePackages = [ config.boot.kernelPackages.nvidia_x11 ];

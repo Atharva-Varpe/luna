@@ -16,6 +16,7 @@
       ./utils/shell.nix
       ./utils/python.nix
       ./utils/autoupgrade.nix
+      ./utils/nvidia-offload.nix
       ];
 
   # Bootloader.

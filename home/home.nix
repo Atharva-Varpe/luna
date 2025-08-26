@@ -8,6 +8,8 @@
     ./packages/btop.nix
     ./packages/utils/git.nix
     ./packages/utils/python.nix
+    ./packages/prismlauncher-offload.nix
+  ./packages/ranger.nix
   ];
 
   # Home Manager manages itself
@@ -21,13 +23,13 @@
     lammps
     ovito
 
+    # games
     mindustry-wayland
     
     # 7zip
     p7zip
 
-    # ranger
-    ranger
+  # ranger is enabled via ./packages/ranger.nix
 
     # docker
     docker_28
@@ -50,4 +52,17 @@
 
   programs.fish.enable = true;
   programs.starship = { enable = true; enableFishIntegration = true; };
+
+  # Desktop entry to show Prism Launcher in menus, using the offload wrapper
+  xdg.desktopEntries.prismlauncher = {
+    name = "Prism Launcher (NVIDIA)";
+    genericName = "Minecraft Launcher";
+    comment = "Launch Prism Launcher using NVIDIA PRIME offload";
+    exec = "prismlauncher %U"; # the wrapper installed by prismlauncher-offload.nix
+    terminal = false;
+    categories = [ "Game" ];
+    # Try to use the upstream icon directly from the store path
+    icon = "${pkgs.prismlauncher}/share/icons/hicolor/256x256/apps/prismlauncher.png";
+    mimeType = [ "x-scheme-handler/minecraft" ];
+  };
 }
