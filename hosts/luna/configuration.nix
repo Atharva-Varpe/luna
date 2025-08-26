@@ -14,6 +14,8 @@
       ./utils/garbage_collector.nix
       ./utils/tailscale.nix
       ./utils/shell.nix
+      ./utils/python.nix
+      ./utils/autoupgrade.nix
       ];
 
   # Bootloader.

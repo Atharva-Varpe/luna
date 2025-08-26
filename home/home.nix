@@ -21,6 +21,11 @@
     lammps
     ovito
 
+    mindustry-wayland
+    
+    # 7zip
+    p7zip
+
     # ranger
     ranger
 
