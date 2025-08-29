@@ -15,7 +15,7 @@
       
       userSettings = {
         "editor.fontSize" = 14;
-  "editor.fontFamily" = "'JetBrainsMono Nerd Font', 'monospace'";
+        "editor.fontFamily" = "'JetBrainsMono Nerd Font', 'monospace'";
         "editor.fontLigatures" = true;
         "editor.minimap.enabled" = false;
         "editor.wordWrap" = "on";
@@ -24,6 +24,8 @@
         "editor.formatOnSave" = true;
         "editor.tabSize" = 2;
         "editor.insertSpaces" = true;
+        "latex-workshop.latex.autoBuild.run" = "never";
+        "latex-workshop.latex.recipe.default"= "lastUsed";
       };
     };
   };

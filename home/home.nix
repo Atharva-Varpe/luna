@@ -29,6 +29,12 @@
     # 7zip
     p7zip
 
+    # tree
+    tree
+
+    # latex and xelatex
+    texliveFull
+
   # ranger is enabled via ./packages/ranger.nix
 
     # docker
@@ -43,6 +49,8 @@
     wl-clipboard-x11
   ];
 
+  nixpkgs.config.allowUnfree = true;
+
   # Required for Home Manager
   home.username = "luna";
   home.homeDirectory = "/home/luna";
@@ -55,14 +63,14 @@
 
   # Desktop entry to show Prism Launcher in menus, using the offload wrapper
   xdg.desktopEntries.prismlauncher = {
-    name = "Prism Launcher (NVIDIA)";
+    name = "Prism Launcher";
     genericName = "Minecraft Launcher";
-    comment = "Launch Prism Launcher using NVIDIA PRIME offload";
+    comment = "A custom launcher for Minecraft that makes it easy to manage multiple installations of Minecraft at once";
     exec = "prismlauncher %U"; # the wrapper installed by prismlauncher-offload.nix
     terminal = false;
     categories = [ "Game" ];
     # Try to use the upstream icon directly from the store path
-    icon = "${pkgs.prismlauncher}/share/icons/hicolor/256x256/apps/prismlauncher.png";
+    icon = "prismlauncher";
     mimeType = [ "x-scheme-handler/minecraft" ];
   };
 }
