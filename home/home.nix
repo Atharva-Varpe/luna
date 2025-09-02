@@ -9,6 +9,7 @@
     ./packages/utils/python.nix
     ./packages/prismlauncher-offload.nix
     ./packages/ranger.nix
+    ./packages/neovide.nix
     inputs.nixvim.homeModules.default
     ./packages/nixvim.nix
   ];  # Home Manager manages itself
@@ -104,5 +105,16 @@
     # Try to use the upstream icon directly from the store path
     icon = "prismlauncher";
     mimeType = [ "x-scheme-handler/minecraft" ];
+  };
+
+  # Hide the Neovim application entry provided by the neovim package.
+  # This keeps nixvim enabled but removes the GNOME app grid icon.
+  xdg.desktopEntries.nvim = {
+    name = "Neovim";
+    exec = "nvim %F";
+    terminal = true;
+    icon = "nvim";
+    noDisplay = true; # renders the entry hidden in menus
+    categories = [ "Utility" "TextEditor" ];
   };
 }

@@ -550,13 +550,13 @@
       # Comments
       {
         mode = "n";
-        key = "<leader>cc";
+        key = "<leader>/";
         action = "<cmd>lua require('Comment.api').toggle.linewise.current()<cr>";
         options.desc = "Toggle comment line";
       }
       {
         mode = "v";
-        key = "<leader>cc";
+        key = "<leader>/";
         action = "<esc><cmd>lua require('Comment.api').toggle.linewise(vim.fn.visualmode())<cr>";
         options.desc = "Toggle comment selection";
       }

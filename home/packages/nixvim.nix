@@ -27,6 +27,17 @@
             folder = true;
             folder_arrow = true;
           };
+          actions = {
+            open_file = {
+              quit_on_open = false;
+              resize_window = true;
+              window_picker = {
+                enable = true;
+              };
+            };
+          };
+          sync_root_with_cwd = true;  # Sync tree root with current working directory
+          respect_buf_cwd = true;     # Respect buffer's working directory
         };
         openOnSetup = true;
       };
@@ -196,7 +207,7 @@
               {
                 desc = "󰊳 Update";
                 group = "@property";
-                action = "PlugUpdate";
+                action = "Lazy update";
                 key = "u";
               }
               {
