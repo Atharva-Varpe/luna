@@ -19,6 +19,9 @@
     # fonts
     nerd-fonts.jetbrains-mono
 
+    # notes
+    obsidian
+
     # lammps & ovito for MM722
     lammps
     ovito
@@ -34,6 +37,10 @@
 
     # latex and xelatex
     texliveFull
+
+    # ai-ide
+    windsurf
+    code-cursor
 
   # ranger is enabled via ./packages/ranger.nix
 
