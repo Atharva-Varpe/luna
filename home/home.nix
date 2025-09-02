@@ -1,7 +1,6 @@
 { inputs, config, pkgs, ... }:
 {
   imports = [
-    ./packages/lunarvim.nix
     ./packages/wget.nix
     ./packages/vscode.nix
     ./packages/zen-browser.nix
@@ -9,10 +8,10 @@
     ./packages/utils/git.nix
     ./packages/utils/python.nix
     ./packages/prismlauncher-offload.nix
-  ./packages/ranger.nix
-  ];
-
-  # Home Manager manages itself
+    ./packages/ranger.nix
+    inputs.nixvim.homeModules.default
+    ./packages/nixvim.nix
+  ];  # Home Manager manages itself
   programs.home-manager.enable = true;
 
   home.packages = with pkgs; [
@@ -54,9 +53,34 @@
     # clipboard
     wl-clipboard
     wl-clipboard-x11
-  ];
 
-  nixpkgs.config.allowUnfree = true;
+    # Formatters for nixvim
+    black
+    isort
+    alejandra
+    prettier
+    stylua
+
+    # LSP servers for nixvim
+    nixd
+    basedpyright
+    lua-language-server
+    typescript-language-server
+    rust-analyzer
+    clang-tools
+
+    # Additional tools for development
+    nodePackages.typescript
+    nodejs
+    cargo
+    rustc
+    gcc
+    
+    # Terminal tools for nixvim
+    bat  # For fzf-lua previews
+    fd   # Better find for fzf-lua
+    ripgrep  # Better grep for fzf-lua
+  ];
 
   # Required for Home Manager
   home.username = "luna";
@@ -67,6 +91,7 @@
 
   programs.fish.enable = true;
   programs.starship = { enable = true; enableFishIntegration = true; };
+
 
   # Desktop entry to show Prism Launcher in menus, using the offload wrapper
   xdg.desktopEntries.prismlauncher = {
